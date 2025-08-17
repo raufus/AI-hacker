@@ -1,0 +1,80 @@
+# AI Model Configuration
+model:
+  name: nous-hermes-2-solar-10.7b
+  path: models/nous-hermes-2-solar-10.7b.Q4_K_M.gguf
+  type: llama
+  parameters:
+    n_ctx: 4096
+    n_threads: 8
+    n_batch: 512
+    n_gpu_layers: 0  # Set to 0 for CPU, adjust for GPU
+    temperature: 0.7
+    top_p: 0.9
+    repeat_penalty: 1.1
+    repeat_last_n: 64
+
+# Security Analysis Parameters
+security_analysis:
+  vulnerability_types:
+    - sqli
+    - xss
+    - ssrf
+    - buffer_overflow
+    - command_injection
+    - path_traversal
+    - csrf
+    - broken_auth
+    - sensitive_data
+    - crypto_issues
+  severity_levels:
+    - critical
+    - high
+    - medium
+    - low
+    - info
+  confidence_threshold: 0.7
+
+# Threat Assessment Parameters
+threat_assessment:
+  risk_factors:
+    - public_exploit
+    - recent_vulnerability
+    - high_impact
+    - critical_service
+    - multiple_vulnerabilities
+  threat_levels:
+    - critical
+    - high
+    - medium
+    - low
+  assessment_window: 30  # days
+
+# Exploit Prediction Parameters
+exploit_prediction:
+  factors:
+    - public_exploit
+    - vulnerability_age
+    - affected_systems
+    - exploit_complexity
+    - historical_patterns
+  prediction_threshold: 0.6
+
+# Resource Management
+resources:
+  max_memory: 8192  # MB
+  max_cpu: 80  # %
+  batch_size: 16
+  parallel_tasks: 4
+
+# Logging Parameters
+logging:
+  level: INFO
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/security_analysis.log"
+
+# Performance Optimization
+optimization:
+  cache_size: 512  # MB
+  preload_models: true
+  use_gpu: false  # Set to true if GPU available
+  max_queue_size: 100

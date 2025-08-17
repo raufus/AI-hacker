@@ -1,0 +1,47 @@
+api:
+  host: 0.0.0.0
+  max_requests: 100
+  port: 8000
+  rate_limit: 60
+burp_suite:
+  jar_path: tools\Burp Suite Professional Edition\Dr-FarFar.jar
+  proxy_host: 127.0.0.1
+  proxy_port: 8080
+database:
+  backup_interval: 24
+  max_backups: 7
+  path: data/ai_hackeros.db
+llm:
+  model_path: models/nous-hermes-2-solar-10.7b.Q4_K_M.gguf
+  n_ctx: 4096
+  n_gpu_layers: 40
+  n_threads: 4
+  verbose: false
+metasploit:
+  host: 127.0.0.1
+  password: msf_password
+  port: 55553
+  user: msf
+network:
+  max_connections: 100
+  retries: 3
+  scan_rate: normal
+  timeout: 30
+security:
+  allow_list:
+  - 192.168.1.0/24
+  - 10.0.0.0/8
+  log_all_actions: true
+  max_scan_duration: 3600
+  require_authorization: true
+system:
+  log_level: INFO
+  max_concurrent_scans: 5
+  resource_limits:
+    cpu: 80
+    disk: 90
+    memory: 8192
+tools:
+  metasploit:
+    path: ''
+  tools_path: tools
