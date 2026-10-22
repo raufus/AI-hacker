@@ -2,15 +2,11 @@
 """
 Browser automation module for web application testing
 """
-import time
 import logging
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
 class WebAutomation:
     def __init__(self, headless: bool = True):
