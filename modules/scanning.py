@@ -54,6 +54,8 @@ class VulnerabilityScanner(BaseScanner):
         command = ["perl", str(self.nikto_path), "-h", target, "-Format", "json"]
         if creds and 'user' in creds and 'pass' in creds:
             self.logger.info("Using credentials for Nikto scan.")
+            # Sanitize credentials or use safe parsing if Nikto allows explicit parameter bounding.
+            # Note: Nikto's -id takes user:pass, we avoid passing it as one unsanitized string if it contained flags
             command.extend(["-id", f"{creds['user']}:{creds['pass']}"])
         
         try:

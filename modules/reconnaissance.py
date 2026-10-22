@@ -17,11 +17,21 @@ class ReconModule:
         self.logger = setup_logger(__name__)
         self.tools = ["nmap", "sublist3r", "whatweb"]
     
+    def _validate_target(self, target: str) -> bool:
+        """Validate target to prevent command injection (e.g. arguments starting with -)"""
+        if not target or target.startswith('-') or ';' in target or '&' in target or '|' in target:
+            self.logger.error(f"Invalid target format: {target}")
+            return False
+        return True
+
     def nmap_scan(self, target: str) -> Dict[str, Any]:
         """
         Perform an intelligent, multi-stage Nmap scan to identify live hosts,
         open ports, and service versions.
         """
+        if not self._validate_target(target):
+            return {"error": "Invalid target"}
+
         # On Windows, Nmap might not be in PATH, so check default location
         nmap_path = 'nmap'
         if platform.system() == "Windows":
@@ -37,7 +47,8 @@ class ReconModule:
         try:
             # 1. Fast scan for top ports to quickly find open ones
             self.logger.info(f"[{target}] Performing fast scan on top ports...")
-            fast_scan_cmd = [nmap_path, "-F", "--open", target, "-oX", "-"]
+            # Use safe subprocess arrays, no shell=True
+            fast_scan_cmd = [nmap_path, "-F", "--open", "--", target, "-oX", "-"]
             scan_result = subprocess.run(fast_scan_cmd, capture_output=True, text=True, check=True)
 
             open_ports = self._parse_nmap_xml(scan_result.stdout)
@@ -50,7 +61,7 @@ class ReconModule:
 
             # 2. Detailed scan on discovered ports for service versions and OS
             ports_str = ",".join(map(str, open_ports))
-            detailed_scan_cmd = [nmap_path, "-sV", "-O", "-p", ports_str, target, "-oX", "-"]
+            detailed_scan_cmd = [nmap_path, "-sV", "-O", "-p", ports_str, "--", target, "-oX", "-"]
             detailed_result = subprocess.run(detailed_scan_cmd, capture_output=True, text=True, check=True)
 
             return self._parse_nmap_xml(detailed_result.stdout, detailed=True)
@@ -66,6 +77,9 @@ class ReconModule:
     
     def subdomain_enum(self, domain: str) -> List[str]:
         """Enumerate subdomains using Sublist3r"""
+        if not self._validate_target(domain):
+            return []
+
         sublist3r_path = Path("tools/sublist3r/sublist3r.py").resolve()
         output_file = Path(f"subdomains_{domain}.txt").resolve()
 
@@ -97,6 +111,9 @@ class ReconModule:
     
     def web_tech_scan(self, url: str) -> Dict[str, Any]:
         """Scan web technologies using Whatweb."""
+        if not self._validate_target(url):
+            return {"error": "Invalid target URL"}
+
         whatweb_path = Path("tools/whatweb/whatweb").resolve()
 
         if not self._is_ruby_installed():
@@ -111,7 +128,7 @@ class ReconModule:
         try:
             self.logger.info(f"Running WhatWeb on {url}...")
             command = [
-                'bundle', 'exec', 'ruby', str(whatweb_path), f'--log-json={output_file}', url
+                'bundle', 'exec', 'ruby', str(whatweb_path), f'--log-json={output_file}', '--', url
             ]
             # The cwd should be the whatweb directory for bundle to work
             cwd = os.path.dirname(whatweb_path)

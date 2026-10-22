@@ -32,7 +32,7 @@ class AuthManager:
                     "password_hash": self._hash_password("admin123"),
                     "roles": ["admin", "user"],
                     "last_login": None,
-                    "api_key": self._generate_api_key()
+                    "api_key_hash": self._hash_password(self._generate_api_key()) # Stored as hash for security
                 }
             },
             "api_keys": {},
@@ -56,6 +56,23 @@ class AuthManager:
             100000
         )
         return f"{salt}${base64.b64encode(key).decode('utf-8')}"
+
+    def _verify_hash(self, plain: str, stored_hash: str) -> bool:
+        """Verify a plain string against a stored hash"""
+        try:
+            salt, stored_key = stored_hash.split('$')
+            key = hashlib.pbkdf2_hmac(
+                'sha256',
+                plain.encode('utf-8'),
+                salt.encode('utf-8'),
+                100000
+            )
+            return hmac.compare_digest(
+                base64.b64encode(key).decode('utf-8'),
+                stored_key
+            )
+        except Exception:
+            return False
     
     def _generate_api_key(self) -> str:
         """Generate secure API key"""
@@ -66,30 +83,26 @@ class AuthManager:
         if username not in self.auth_data["users"]:
             return False
             
-        stored = self.auth_data["users"][username]["password_hash"]
-        salt, stored_key = stored.split('$')
-        
-        key = hashlib.pbkdf2_hmac(
-            'sha256',
-            password.encode('utf-8'),
-            salt.encode('utf-8'),
-            100000
-        )
-        
-        return hmac.compare_digest(
-            base64.b64encode(key).decode('utf-8'),
-            stored_key
-        )
+        stored_hash = self.auth_data["users"][username]["password_hash"]
+        return self._verify_hash(password, stored_hash)
     
     def verify_api_key(self, api_key: str) -> Optional[Dict]:
         """Verify API key and return user info"""
         for user, data in self.auth_data["users"].items():
-            if data["api_key"] == api_key:
-                return {
-                    "username": user,
-                    "roles": data["roles"],
-                    "permissions": self.get_user_permissions(user)
-                }
+            if "api_key_hash" in data:
+                if self._verify_hash(api_key, data["api_key_hash"]):
+                    return {
+                        "username": user,
+                        "roles": data["roles"],
+                        "permissions": self.get_user_permissions(user)
+                    }
+            elif "api_key" in data: # Fallback for backwards compatibility with old auth files
+                if hmac.compare_digest(data["api_key"], api_key):
+                     return {
+                        "username": user,
+                        "roles": data["roles"],
+                        "permissions": self.get_user_permissions(user)
+                    }
         return None
     
     def get_user_permissions(self, username: str) -> List[str]:
@@ -138,13 +151,15 @@ class AuthManager:
         if username in self.auth_data["users"]:
             raise ValueError("User already exists")
             
+        new_api_key = self._generate_api_key()
         self.auth_data["users"][username] = {
             "password_hash": self._hash_password(password),
             "roles": roles,
             "last_login": None,
-            "api_key": self._generate_api_key()
+            "api_key_hash": self._hash_password(new_api_key)
         }
         self._save_auth_data()
+        return new_api_key # Return it once so it can be shown to the user, then never seen again
     
     def remove_user(self, username: str):
         """Remove user"""

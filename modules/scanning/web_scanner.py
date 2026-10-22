@@ -22,8 +22,11 @@ class WebScanner(ScanningModule):
             target = 'http://' + target
         
         self.logger.info(f"Starting web scan on {target}")
+        import urllib3
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
         try:
-            response = self.session.get(target, timeout=10)
+            response = self.session.get(target, timeout=10, verify=False)
             response.raise_for_status()
         except requests.RequestException as e:
             self.logger.error(f"Failed to connect to {target}: {e}")

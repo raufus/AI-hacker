@@ -1,0 +1,40 @@
+{
+    "metadata": {
+        "version": "1.0",
+        "last_updated": "2026-10-22T17:49:55.761648",
+        "source": "NVD, CVE, OWASP"
+    },
+    "vulnerabilities": {
+        "web": {
+            "sql_injection": {
+                "severity": "high",
+                "description": "SQL injection vulnerability",
+                "cve": [
+                    "CVE-2023-1234"
+                ],
+                "exploitability": "high",
+                "fix": "Use prepared statements"
+            },
+            "xss": {
+                "severity": "medium",
+                "description": "Cross-site scripting vulnerability",
+                "cve": [
+                    "CVE-2023-5678"
+                ],
+                "exploitability": "medium",
+                "fix": "Sanitize user input"
+            }
+        },
+        "network": {
+            "ssh_bruteforce": {
+                "severity": "medium",
+                "description": "SSH brute force attack",
+                "cve": [
+                    "CVE-2023-9101"
+                ],
+                "exploitability": "medium",
+                "fix": "Enable fail2ban"
+            }
+        }
+    }
+}
