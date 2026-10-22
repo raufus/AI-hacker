@@ -9,7 +9,6 @@ import sys
 import os
 import argparse
 import logging
-from typing import Optional
 import time
 
 # Add project root to Python path
