@@ -4,7 +4,7 @@ Browser automation module for web application testing
 """
 import time
 import logging
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
