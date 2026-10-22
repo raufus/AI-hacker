@@ -195,7 +195,7 @@ class DatabaseManager:
                 "scan_type": row[2],
                 "status": row[4],
                 "created_at": row[5]
-            } for row in cursor.fetchall()]
+            } for row in cursor]
     
     def get_vulnerabilities(self, target: str) -> List[Dict]:
         """Get all vulnerabilities for a target"""
@@ -219,7 +219,7 @@ class DatabaseManager:
                 "details": json.loads(row[4]),
                 "status": row[5],
                 "created_at": row[6]
-            } for row in cursor.fetchall()]
+            } for row in cursor]
     
     def update_vulnerability_status(self, vuln_id: int, status: str):
         """Update vulnerability status"""
@@ -255,7 +255,7 @@ class DatabaseManager:
                 WHERE t.target = ?
                 GROUP BY severity
             ''', (target,))
-            severity_counts = dict(cursor.fetchall())
+            severity_counts = dict(cursor)
             
             return {
                 "total_scans": total_scans,
