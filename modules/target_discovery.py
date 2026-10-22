@@ -3,11 +3,9 @@
 Autonomous target discovery and selection module
 """
 import ipaddress
-import random
 import logging
 import subprocess
 from typing import List, Dict, Any
-import requests
 
 class TargetDiscovery:
     def __init__(self):
