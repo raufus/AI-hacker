@@ -59,8 +59,8 @@ class ISOBuilder:
             
             # Copy contents
             subprocess.run([
-                "sudo", "cp", "-r", f"{mount_point}/*", str(extract_dir)
-            ], shell=True, check=True)
+                "sudo", "cp", "-r", f"{mount_point}/.", str(extract_dir)
+            ], check=True)
             
             # Unmount
             subprocess.run([
