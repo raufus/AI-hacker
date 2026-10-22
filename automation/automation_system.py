@@ -1,13 +1,9 @@
 """
 Advanced automation system for security operations
 """
-import asyncio
-from typing import Dict, List, Any, Callable
+from typing import Dict, List, Callable
 import logging
 from datetime import datetime
-import json
-import os
-from pathlib import Path
 
 class SecurityAutomationSystem:
     def __init__(self):
