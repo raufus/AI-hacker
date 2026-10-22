@@ -166,13 +166,21 @@ class ConfigManager:
                 return False
                 
         # Validate system settings
-        if not isinstance(self.config["system"]["max_concurrent_scans"], int):
-            self.logger.error("Invalid max_concurrent_scans value")
+        system_config = self.config.get("system")
+        if not isinstance(system_config, dict):
+            self.logger.error("System section is not a dictionary")
+            return False
+        if "max_concurrent_scans" not in system_config or not isinstance(system_config.get("max_concurrent_scans"), int):
+            self.logger.error("Invalid or missing max_concurrent_scans value")
             return False
             
         # Validate network settings
-        if not isinstance(self.config["network"]["timeout"], int):
-            self.logger.error("Invalid network timeout value")
+        network_config = self.config.get("network")
+        if not isinstance(network_config, dict):
+            self.logger.error("Network section is not a dictionary")
+            return False
+        if "timeout" not in network_config or not isinstance(network_config.get("timeout"), int):
+            self.logger.error("Invalid or missing network timeout value")
             return False
             
         return True
