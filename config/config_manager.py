@@ -3,6 +3,7 @@ Configuration management system
 """
 import yaml
 import os
+import secrets
 from typing import Dict, Any, Optional
 import logging
 from pathlib import Path
@@ -106,7 +107,7 @@ class ConfigManager:
                 "host": "127.0.0.1",
                 "port": 55553,
                 "user": "msf",
-                "password": "msf_password"
+                "password": os.environ.get("MSF_PASSWORD", secrets.token_hex(16))
             },
             "burp_suite": {
                 # "jar_path": self._find_burp_suite_jar(), # Disabled to prioritize user-defined path
