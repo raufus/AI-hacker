@@ -5,7 +5,7 @@ import hashlib
 import hmac
 import base64
 import secrets
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 import json
 import os
 from datetime import datetime, timedelta
@@ -15,6 +15,10 @@ class AuthManager:
         self.auth_file = auth_file
         self._load_auth_data()
         self._setup_auth_system()
+
+    def _setup_auth_system(self):
+        """Setup authentication system if needed"""
+        pass
     
     def _load_auth_data(self):
         """Load authentication data"""
