@@ -2,7 +2,8 @@
 Advanced error handling and recovery system
 """
 import logging
-from typing import Type, Dict, Any
+import os
+from typing import Type, Dict, Any, List
 import traceback
 import json
 from datetime import datetime
