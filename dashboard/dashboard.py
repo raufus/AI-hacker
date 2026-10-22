@@ -7,7 +7,6 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from typing import Dict, List, Any
 import json
-import os
 from datetime import datetime
 from pathlib import Path
 
