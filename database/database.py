@@ -5,7 +5,7 @@ import sqlite3
 import json
 from datetime import datetime
 import os
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 class DatabaseManager:
     def __init__(self, db_path: str = "data/ai_hackeros.db"):
