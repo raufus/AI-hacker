@@ -7,8 +7,11 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from typing import Dict, List, Any
 import json
+import aiofiles
+import asyncio
 import os
 from datetime import datetime
+import time
 from pathlib import Path
 
 app = FastAPI(
@@ -24,39 +27,53 @@ templates = Jinja2Templates(directory=dashboard_dir / "templates")
 
 class DashboardData:
     def __init__(self):
-        self._load_data()
-        self._setup_metrics()
-    
-    def _load_data(self):
-        """Load dashboard data"""
         self.data = {
-            "vulnerabilities": self._load_vulnerabilities(),
-            "assets": self._load_assets(),
-            "scans": self._load_scans(),
-            "metrics": self._calculate_metrics()
+            "vulnerabilities": [],
+            "assets": [],
+            "scans": [],
+            "metrics": {}
         }
+        self.metrics = {}
+        self._setup_metrics()
+
+    async def initialize(self):
+        await self._load_data()
     
-    def _load_vulnerabilities(self) -> List[Dict]:
+    async def _load_data(self):
+        """Load dashboard data"""
+        v, a, s = await asyncio.gather(
+            self._load_vulnerabilities(),
+            self._load_assets(),
+            self._load_scans()
+        )
+        self.data = {
+            "vulnerabilities": v,
+            "assets": a,
+            "scans": s
+        }
+        self.data["metrics"] = self._calculate_metrics()
+    
+    async def _load_vulnerabilities(self) -> List[Dict]:
         """Load vulnerability data"""
         try:
-            with open("data/vulnerabilities.json", 'r') as f:
-                return json.load(f)
+            async with aiofiles.open("data/vulnerabilities.json", 'r') as f:
+                return json.loads(await f.read())
         except:
             return []
     
-    def _load_assets(self) -> List[Dict]:
+    async def _load_assets(self) -> List[Dict]:
         """Load asset data"""
         try:
-            with open("data/assets.json", 'r') as f:
-                return json.load(f)
+            async with aiofiles.open("data/assets.json", 'r') as f:
+                return json.loads(await f.read())
         except:
             return []
     
-    def _load_scans(self) -> List[Dict]:
+    async def _load_scans(self) -> List[Dict]:
         """Load scan history"""
         try:
-            with open("data/scans.json", 'r') as f:
-                return json.load(f)
+            async with aiofiles.open("data/scans.json", 'r') as f:
+                return json.loads(await f.read())
         except:
             return []
     
@@ -103,6 +120,10 @@ class DashboardData:
             pass
 
 dashboard_data = DashboardData()
+
+@app.on_event("startup")
+async def startup_event():
+    await dashboard_data.initialize()
 
 @app.get("/", response_class=HTMLResponse)
 async def dashboard(request: Request):
