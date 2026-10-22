@@ -19,15 +19,49 @@ class DatabaseManager:
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             
+            # Create engagements table (Security Control requirement)
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS engagements (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL,
+                    description TEXT,
+                    status TEXT DEFAULT 'planned',
+                    start_date TEXT,
+                    end_date TEXT,
+                    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+
             # Create targets table
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS targets (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    engagement_id INTEGER,
                     target TEXT NOT NULL,
                     type TEXT,
                     status TEXT,
+                    authorized BOOLEAN DEFAULT FALSE,
                     last_scanned TEXT,
-                    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+                    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (engagement_id) REFERENCES engagements (id)
+                )
+            ''')
+
+            # Create jobs table (Task state machine support)
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS jobs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    engagement_id INTEGER,
+                    target_id INTEGER,
+                    module TEXT NOT NULL,
+                    status TEXT DEFAULT 'pending',
+                    input_data TEXT,
+                    output_data TEXT,
+                    error_message TEXT,
+                    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (engagement_id) REFERENCES engagements (id),
+                    FOREIGN KEY (target_id) REFERENCES targets (id)
                 )
             ''')
             
@@ -73,14 +107,45 @@ class DatabaseManager:
             
             conn.commit()
     
-    def add_target(self, target: str, target_type: str = "unknown") -> int:
-        """Add new target to database"""
+    def create_engagement(self, name: str, description: str = "") -> int:
+        """Create a new authorized engagement"""
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             cursor.execute('''
-                INSERT INTO targets (target, type, status, last_scanned)
+                INSERT INTO engagements (name, description, status)
+                VALUES (?, ?, ?)
+            ''', (name, description, "active"))
+            conn.commit()
+            return cursor.lastrowid
+
+    def add_target(self, engagement_id: int, target: str, target_type: str = "unknown", authorized: bool = False) -> int:
+        """Add new target to database, must be linked to an engagement"""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                INSERT INTO targets (engagement_id, target, type, status, authorized, last_scanned)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (engagement_id, target, target_type, "pending", authorized, datetime.now().isoformat()))
+            conn.commit()
+            return cursor.lastrowid
+
+    def is_target_authorized(self, target: str) -> bool:
+        """Check if a target is explicitly authorized"""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT authorized FROM targets WHERE target = ? AND authorized = 1
+            ''', (target,))
+            return cursor.fetchone() is not None
+
+    def create_job(self, engagement_id: int, target_id: int, module: str, input_data: Dict = None) -> int:
+        """Create a new execution job"""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                INSERT INTO jobs (engagement_id, target_id, module, input_data)
                 VALUES (?, ?, ?, ?)
-            ''', (target, target_type, "pending", datetime.now().isoformat()))
+            ''', (engagement_id, target_id, module, json.dumps(input_data) if input_data else "{}"))
             conn.commit()
             return cursor.lastrowid
     
