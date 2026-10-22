@@ -18,13 +18,15 @@ class LocalGGUFProvider(AIProvider):
 
     def load_model(self) -> bool:
         if Llama is None:
-            self.logger.error("llama-cpp-python not installed. Install with: pip install llama-cpp-python")
-            return False
+            error_msg = "llama-cpp-python not installed. Install with: pip install llama-cpp-python"
+            self.logger.error(error_msg)
+            raise ImportError(error_msg)
 
         try:
             if not os.path.exists(self.model_path):
-                self.logger.error(f"Model file not found: {self.model_path}")
-                return False
+                error_msg = f"Model file not found: {self.model_path}"
+                self.logger.error(error_msg)
+                raise FileNotFoundError(error_msg)
 
             cpu_count = os.cpu_count() or 4
             gpu_layers = 20
