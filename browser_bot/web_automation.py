@@ -10,7 +10,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from selenium.common.exceptions import TimeoutException, NoSuchElementException, StaleElementReferenceException
 
 class WebAutomation:
     def __init__(self, headless: bool = True):
@@ -79,6 +79,7 @@ class WebAutomation:
             "'; DROP TABLE users--"
         ]
         
+        submit_btn = None
         for payload in sql_payloads:
             try:
                 # Fill form with payload
@@ -89,8 +90,14 @@ class WebAutomation:
                         element.send_keys(payload)
                 
                 # Submit form
-                submit_btn = self.driver.find_element(By.CSS_SELECTOR, "input[type='submit'], button[type='submit']")
-                submit_btn.click()
+                if submit_btn is None:
+                    submit_btn = self.driver.find_element(By.CSS_SELECTOR, "input[type='submit'], button[type='submit']")
+
+                try:
+                    submit_btn.click()
+                except StaleElementReferenceException:
+                    submit_btn = self.driver.find_element(By.CSS_SELECTOR, "input[type='submit'], button[type='submit']")
+                    submit_btn.click()
                 
                 # Check for SQL error indicators
                 page_source = self.driver.page_source.lower()
@@ -118,6 +125,7 @@ class WebAutomation:
             "<img src=x onerror=alert('XSS')>"
         ]
         
+        submit_btn = None
         for payload in xss_payloads:
             try:
                 # Fill form with payload
@@ -128,8 +136,14 @@ class WebAutomation:
                         element.send_keys(payload)
                 
                 # Submit form
-                submit_btn = self.driver.find_element(By.CSS_SELECTOR, "input[type='submit'], button[type='submit']")
-                submit_btn.click()
+                if submit_btn is None:
+                    submit_btn = self.driver.find_element(By.CSS_SELECTOR, "input[type='submit'], button[type='submit']")
+
+                try:
+                    submit_btn.click()
+                except StaleElementReferenceException:
+                    submit_btn = self.driver.find_element(By.CSS_SELECTOR, "input[type='submit'], button[type='submit']")
+                    submit_btn.click()
                 
                 # Check if payload is reflected
                 if payload in self.driver.page_source:
