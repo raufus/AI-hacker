@@ -2,7 +2,6 @@
 """
 Browser automation module for web application testing
 """
-import time
 import logging
 from typing import Dict, List, Any, Optional
 from selenium import webdriver
