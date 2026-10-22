@@ -54,7 +54,7 @@ class DatabaseManager:
                     engagement_id INTEGER,
                     target_id INTEGER,
                     module TEXT NOT NULL,
-                    status TEXT DEFAULT 'pending',
+                    status TEXT DEFAULT 'queued',
                     input_data TEXT,
                     output_data TEXT,
                     error_message TEXT,
@@ -120,8 +120,18 @@ class DatabaseManager:
 
     def add_target(self, engagement_id: int, target: str, target_type: str = "unknown", authorized: bool = False) -> int:
         """Add new target to database, must be linked to an engagement"""
+        # Server-side validation
+        if not target or not isinstance(target, str) or len(target) < 3:
+            raise ValueError("Invalid target format")
+
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
+
+            # Verify engagement exists
+            cursor.execute("SELECT id FROM engagements WHERE id = ?", (engagement_id,))
+            if not cursor.fetchone():
+                raise ValueError("Engagement does not exist")
+
             cursor.execute('''
                 INSERT INTO targets (engagement_id, target, type, status, authorized, last_scanned)
                 VALUES (?, ?, ?, ?, ?, ?)
@@ -142,12 +152,97 @@ class DatabaseManager:
         """Create a new execution job"""
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
+
+            # Strict verification: Ensure target belongs to the engagement and is authorized
             cursor.execute('''
-                INSERT INTO jobs (engagement_id, target_id, module, input_data)
-                VALUES (?, ?, ?, ?)
-            ''', (engagement_id, target_id, module, json.dumps(input_data) if input_data else "{}"))
+                SELECT t.authorized, e.status
+                FROM targets t
+                JOIN engagements e ON t.engagement_id = e.id
+                WHERE t.id = ? AND t.engagement_id = ?
+            ''', (target_id, engagement_id))
+
+            row = cursor.fetchone()
+            if not row:
+                raise ValueError("Target does not belong to this engagement or does not exist")
+
+            authorized, eng_status = row
+            if not authorized:
+                raise ValueError("Cannot create job for unauthorized target")
+            if eng_status != 'active':
+                raise ValueError("Cannot create job for inactive engagement")
+
+            cursor.execute('''
+                INSERT INTO jobs (engagement_id, target_id, module, status, input_data)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (engagement_id, target_id, module, 'queued', json.dumps(input_data) if input_data else "{}"))
             conn.commit()
             return cursor.lastrowid
+
+    def claim_job(self) -> Optional[tuple]:
+        """Claim a queued job for a worker with transaction safety and authorization checks"""
+        with sqlite3.connect(self.db_path, isolation_level=None) as conn:
+            cursor = conn.cursor()
+            cursor.execute("BEGIN IMMEDIATE")
+            try:
+                cursor.execute('''
+                    SELECT j.id, j.module, t.target, j.input_data
+                    FROM jobs j
+                    JOIN targets t ON j.target_id = t.id
+                    JOIN engagements e ON j.engagement_id = e.id
+                    WHERE j.status = 'queued'
+                      AND t.authorized = 1
+                      AND e.status = 'active'
+                    ORDER BY j.created_at ASC LIMIT 1
+                ''')
+                job = cursor.fetchone()
+
+                if job:
+                    job_id = job[0]
+                    cursor.execute("UPDATE jobs SET status = 'running', updated_at = CURRENT_TIMESTAMP WHERE id = ?", (job_id,))
+                    conn.commit()
+                    return (job[0], job[1], job[2], json.loads(job[3] or "{}"))
+                conn.commit()
+                return None
+            except Exception as e:
+                conn.rollback()
+                raise e
+
+    def update_job_status(self, job_id: int, status: str):
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("UPDATE jobs SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", (status, job_id))
+            conn.commit()
+
+    def update_job_result(self, job_id: int, status: str, result_data: Dict):
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+
+            # Save error message if failed, else output_data
+            if status == 'failed':
+                cursor.execute("UPDATE jobs SET status = ?, error_message = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                               (status, json.dumps(result_data), job_id))
+            else:
+                cursor.execute("UPDATE jobs SET status = ?, output_data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                               (status, json.dumps(result_data), job_id))
+
+                # If completed successfully, add a scan result
+                cursor.execute("SELECT target_id, module FROM jobs WHERE id = ?", (job_id,))
+                job_info = cursor.fetchone()
+                if job_info:
+                    target_id, module = job_info
+                    cursor.execute('''
+                        INSERT INTO scan_results (target_id, scan_type, results, status)
+                        VALUES (?, ?, ?, ?)
+                    ''', (target_id, module, json.dumps(result_data), "completed"))
+                    scan_id = cursor.lastrowid
+
+            conn.commit()
+
+            if status != 'failed' and job_info:
+                # Create findings if result_data has a 'vulnerabilities' key
+                if 'vulnerabilities' in result_data and isinstance(result_data['vulnerabilities'], list):
+                    for vuln in result_data['vulnerabilities']:
+                        self.add_vulnerability(scan_id, vuln)
     
     def add_scan_result(self, target_id: int, scan_type: str, results: Dict) -> int:
         """Add scan results to database"""
