@@ -5,7 +5,7 @@ from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
-from typing import Dict, List, Any
+from typing import Dict, List
 import json
 import os
 from datetime import datetime
