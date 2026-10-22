@@ -4,7 +4,7 @@ Payload generation and delivery module
 """
 import base64
 import logging
-from typing import Dict, List, Any
+from typing import List
 
 class PayloadGenerator:
     def __init__(self):
