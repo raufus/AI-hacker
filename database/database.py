@@ -13,7 +13,7 @@ class DatabaseManager:
         self._setup_database()
     
     def _setup_database(self):
-        """Create database and tables if they don't exist"""
+        """Create database and tables, and handle basic migrations"""
         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
         
         with sqlite3.connect(self.db_path) as conn:
@@ -31,6 +31,19 @@ class DatabaseManager:
                     created_at TEXT DEFAULT CURRENT_TIMESTAMP
                 )
             ''')
+
+            # Ensure tables exist
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='targets'")
+            targets_exists = cursor.fetchone()
+
+            if targets_exists:
+                # Check for required schema columns and migrate if necessary
+                cursor.execute("PRAGMA table_info(targets)")
+                columns = [col[1] for col in cursor.fetchall()]
+                if 'engagement_id' not in columns:
+                    cursor.execute("ALTER TABLE targets ADD COLUMN engagement_id INTEGER REFERENCES engagements(id)")
+                if 'authorized' not in columns:
+                    cursor.execute("ALTER TABLE targets ADD COLUMN authorized BOOLEAN DEFAULT FALSE")
 
             # Create targets table
             cursor.execute('''

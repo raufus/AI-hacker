@@ -55,9 +55,10 @@ def frame():
         with ui.column().classes('w-full p-4'):
             ui.link('Dashboard Overview', '/').classes('nav-link')
             ui.link('Assets & Scope', '/assets').classes('nav-link')
-            ui.link('Engagements & Scans', '/engagements').classes('nav-link')
-            ui.link('AI Control Center', '/ai').classes('nav-link')
+            ui.link('Engagements', '/engagements').classes('nav-link')
             ui.link('Security Modules', '/modules').classes('nav-link')
+            ui.link('Jobs & Activity', '/jobs').classes('nav-link')
             ui.link('Findings & Evidence', '/findings').classes('nav-link')
             ui.link('Reports', '/reports').classes('nav-link')
+            ui.link('AI Control Center', '/ai').classes('nav-link')
             ui.link('Audit & Health', '/audit').classes('nav-link')

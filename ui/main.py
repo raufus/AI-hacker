@@ -8,6 +8,13 @@ from nicegui import ui as nice_ui
 
 import ui.pages.overview
 import ui.pages.assets
+import ui.pages.engagements
+import ui.pages.security_modules
+import ui.pages.jobs
+import ui.pages.findings
+import ui.pages.reports
+import ui.pages.ai_control
+import ui.pages.audit
 
 def run_ui():
     """Starts the NiceGUI application."""
