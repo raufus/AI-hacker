@@ -19,8 +19,13 @@ app = FastAPI(
 
 # Mount static files
 dashboard_dir = Path(__file__).parent
-app.mount("/static", StaticFiles(directory=dashboard_dir / "static"), name="static")
-templates = Jinja2Templates(directory=dashboard_dir / "templates")
+static_dir = dashboard_dir / "static"
+templates_dir = dashboard_dir / "templates"
+static_dir.mkdir(parents=True, exist_ok=True)
+templates_dir.mkdir(parents=True, exist_ok=True)
+
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
+templates = Jinja2Templates(directory=templates_dir)
 
 class DashboardData:
     def __init__(self):
@@ -33,14 +38,32 @@ class DashboardData:
             "vulnerabilities": self._load_vulnerabilities(),
             "assets": self._load_assets(),
             "scans": self._load_scans(),
-            "metrics": self._calculate_metrics()
         }
+        self.data["metrics"] = self._calculate_metrics()
     
     def _load_vulnerabilities(self) -> List[Dict]:
         """Load vulnerability data"""
         try:
             with open("data/vulnerabilities.json", 'r') as f:
-                return json.load(f)
+                data = json.load(f)
+
+            if not isinstance(data, dict):
+                return []
+
+            vulns = data.get("vulnerabilities", {})
+            if not isinstance(vulns, dict):
+                return []
+
+            flat_list = []
+            for category, category_vulns in vulns.items():
+                if isinstance(category_vulns, dict):
+                    for vuln_name, vuln_data in category_vulns.items():
+                        if isinstance(vuln_data, dict):
+                            vuln_copy = vuln_data.copy()
+                            vuln_copy["name"] = vuln_name
+                            vuln_copy["category"] = category
+                            flat_list.append(vuln_copy)
+            return flat_list
         except:
             return []
     
@@ -85,6 +108,7 @@ class DashboardData:
         
         # Update metrics every second
         import threading
+        import time
         def update_metrics():
             while True:
                 self._update_metrics()
