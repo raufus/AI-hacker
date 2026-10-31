@@ -11,8 +11,8 @@ def ai_page():
         with ui.card().classes('w-full'):
             ui.label('Local GGUF Model Config').classes('text-xl font-bold mb-2')
 
-            # Simulated state for the UI
-            model_path = os.environ.get('GGUF_MODEL_PATH', 'models/nous-hermes-2-solar-10.7b.Q4_K_M.gguf')
+            from config.config_manager import ConfigManager
+            model_path = ConfigManager().get_setting("llm.model_path", "models/nous-hermes-2-solar-10.7b.Q4_K_M.gguf")
 
             ui.input('Model Path', value=model_path).classes('w-full max-w-2xl').set_enabled(False)
 
