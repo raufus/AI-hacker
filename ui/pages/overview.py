@@ -49,8 +49,13 @@ def overview_page():
                 ui.label(str(assets_in_scope)).classes('metric-value')
             with ui.column().classes('card flex-1 items-center'):
                 ui.label('AI Engine Health').classes('text-gray-400 text-sm uppercase tracking-wide')
-                # AI Engine check would go here, hardcoded as ONLINE for now since we don't have a live AI status yet
-                ui.label('ONLINE').classes('metric-value text-green-500')
+                import os
+                from config.config_manager import ConfigManager
+                model_path = ConfigManager().get_setting("llm.model_path", "models/nous-hermes-2-solar-10.7b.Q4_K_M.gguf")
+                if os.path.exists(model_path):
+                    ui.label('ONLINE (Local)').classes('metric-value text-green-500')
+                else:
+                    ui.label('OFFLINE').classes('metric-value text-red-500')
 
         # Recent Activity & Findings Distribution
         with ui.row().classes('w-full gap-6 mt-6'):

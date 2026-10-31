@@ -116,9 +116,5 @@ class TargetDiscovery:
     def get_external_ip_ranges(self) -> List[str]:
         """Get external IP ranges (for educational purposes only)"""
         # This should only be used in authorized environments
-        educational_ranges = [
-            "scanme.nmap.org",
-            "testphp.vulnweb.com",
-            "demo.testfire.net"
-        ]
+        educational_ranges = []
         return educational_ranges
