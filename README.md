@@ -99,23 +99,18 @@ cd AI_HackerOS
 
 ### 2. Install Dependencies:
 
-To install the required system tools, you must run the application from a terminal with administrative (or root) privileges.
+Install the required Python 3 packages using the `requirements.txt` file:
 
--   **On Windows:** Open PowerShell or Command Prompt as an Administrator.
--   **On Linux/macOS:** Use `sudo`.
+```bash
+pip install -r requirements.txt
+```
+
+To install the required system tools, you must run the application from a terminal with administrative (or root) privileges.
 
 Run the following command to install all tools:
 
 ```bash
-python main.py --install-tools
-```
-
-### 3. Install Python Dependencies
-
-Install all required Python packages using the `requirements.txt` file:
-
-```bash
-pip install -r requirements.txt
+python3 main.py --install-tools
 ```
 
 ### 4. Set Up External Tools
@@ -145,7 +140,13 @@ Make sure the user and password match what you set in `config.yaml`.
 
 ## How to Use
 
-Use the following commands to run the AI Hacker OS in its different modes.
+To launch the primary Web UI (NiceGUI):
+```bash
+python3 ui/main.py
+```
+This will launch the dashboard accessible via your browser.
+
+Use the following commands to run the AI Hacker OS command line in its different modes.
 
 ### Continuous Mode (Fully Autonomous)
 

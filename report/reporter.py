@@ -43,11 +43,21 @@ class SecurityReporter:
     
     def generate_markdown_report(self, filename: str = None) -> str:
         """Generate Markdown report"""
+        from database.database import DatabaseManager
+        db = DatabaseManager()
+
         if not filename:
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"security_report_{timestamp}.md"
         
         target = self.report_data["metadata"]["target"]
+
+        # Override with real DB findings if available
+        if target:
+            real_vulns = db.get_vulnerabilities(target)
+            if real_vulns:
+                self.report_data["vulnerabilities"] = real_vulns
+
         generated = self.report_data["metadata"]["generated"]
         
         markdown_content = f"""# Security Assessment Report
