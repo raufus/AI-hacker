@@ -69,8 +69,16 @@ def discover_targets() -> list:
     for target in external_targets:
         all_targets.append({"host": target, "priority": 5, "ports": []})
     
-    logger.info(f"Discovered {len(all_targets)} potential targets")
-    return all_targets
+    from database.database import DatabaseManager
+    db = DatabaseManager()
+
+    authorized_targets = []
+    for t in all_targets:
+        if db.is_target_authorized(t["host"]):
+            authorized_targets.append(t)
+
+    logger.info(f"Discovered {len(all_targets)} potential targets. {len(authorized_targets)} are authorized.")
+    return authorized_targets
 
 def run_autonomous_mode(target: str):
     """Run autonomous penetration testing"""

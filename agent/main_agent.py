@@ -49,6 +49,12 @@ class AutonomousAgent:
         """Main autonomous operation loop"""
         self.logger.info(f"Starting autonomous operation against {self.target}")
         
+        from database.database import DatabaseManager
+        db = DatabaseManager()
+        if not db.is_target_authorized(self.target):
+            self.logger.error(f"Target {self.target} is NOT explicitly authorized. Aborting autonomous operation.")
+            raise ValueError(f"Target {self.target} is not authorized for scanning.")
+
         # --- Phase 1: Reconnaissance ---
         self.current_phase = "reconnaissance"
         self.logger.info("Entering reconnaissance phase")
