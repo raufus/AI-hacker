@@ -146,35 +146,9 @@ def run_autonomous_mode(target: str):
 def run_continuous_mode():
     """Run in continuous autonomous mode"""
     logger = setup_logger("ContinuousMode")
-    
-    logger.info("Starting continuous autonomous mode...")
-    
-    while True:
-        try:
-            # Discover new targets
-            targets = discover_targets()
-            
-            for target_info in targets[:3]:  # Test top 3 targets
-                target = target_info["host"]
-                logger.info(f"Testing target: {target} (Priority: {target_info['priority']})")
-                
-                # Run autonomous test
-                run_autonomous_mode(target)
-                
-                # Wait before next target
-                import time
-                time.sleep(300)  # 5 minutes between targets
-                
-            # Wait before next discovery cycle
-            logger.info("Cycle complete. Waiting 1 hour before next cycle...")
-            time.sleep(3600)  # 1 hour between cycles
-            
-        except KeyboardInterrupt:
-            logger.info("Continuous mode stopped by user")
-            break
-        except Exception as e:
-            logger.error(f"Error in continuous mode: {e}")
-            time.sleep(600)  # Wait 10 minutes on error
+    logger.error("Continuous mode has been disabled for safety as it violates strict engagement scopes.")
+    print("\n⚠️  WARNING: Continuous mode disabled. Unbounded target discovery is prohibited.")
+    return
 
 def run_manual_mode():
     """Run manual/interactive mode"""

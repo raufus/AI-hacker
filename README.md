@@ -147,12 +147,12 @@ Make sure the user and password match what you set in `config.yaml`.
 
 Use the following commands to run the AI Hacker OS in its different modes.
 
-### Continuous Mode (Fully Autonomous)
+### UI Mode (Recommended)
 
-The AI discovers its own targets and attacks them in an endless loop. This is the most powerful, hands-off mode.
+Start the professional NiceGUI dashboard to manage engagements, scopes, and target execution interactively.
 
 ```bash
-python main.py --continuous
+python ui/main.py
 ```
 
 ### Autonomous Mode (Targeted Attack)

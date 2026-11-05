@@ -61,7 +61,7 @@ class Worker:
                 import asyncio
                 if asyncio.iscoroutinefunction(scanner.scan):
                     loop = asyncio.get_event_loop()
-                    results = loop.run_until_complete(scanner.scan())
+                    results = loop.run_until_complete(asyncio.wait_for(scanner.scan(), timeout=900))
                 else:
                     results = scanner.scan()
             else:
