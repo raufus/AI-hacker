@@ -97,7 +97,7 @@ class WebScanner(BaseScanner):
         command = ["python", str(self.sqlmap_path), "-u", target, "--batch", "--level=1", "--risk=1"]
         if credentials and 'cookie' in credentials:
             self.logger.info("Using cookie for SQLMap scan.")
-            command.append(f"--cookie=\"{credentials['cookie']}\"")
+            command.extend(["--cookie", credentials['cookie']])
 
         try:
             result = subprocess.run(command, capture_output=True, text=True, check=True)

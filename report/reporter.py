@@ -50,6 +50,14 @@ class SecurityReporter:
         target = self.report_data["metadata"]["target"]
         generated = self.report_data["metadata"]["generated"]
         
+        # Pull latest actual vulnerabilities directly from DB
+        from database.database import DatabaseManager
+        db = DatabaseManager()
+        try:
+            db_vulnerabilities = db.get_vulnerabilities(target)
+        except Exception:
+            db_vulnerabilities = self.report_data["vulnerabilities"]
+
         markdown_content = f"""# Security Assessment Report
         
 ## Executive Summary
@@ -66,15 +74,15 @@ Generated: {generated}
 {json.dumps(self.report_data["reconnaissance"].get("web_tech", {}), indent=2)}
 
 ## Vulnerabilities Found
-Total Vulnerabilities: {len(self.report_data["vulnerabilities"])}
+Total Vulnerabilities: {len(db_vulnerabilities)}
 
 """
         
-        for i, vuln in enumerate(self.report_data["vulnerabilities"], 1):
-            markdown_content += f"""### Vulnerability {i}: {vuln.get("type", "Unknown")}
+        for i, vuln in enumerate(db_vulnerabilities, 1):
+            markdown_content += f"""### Vulnerability {i}: {vuln.get("vulnerability", vuln.get("type", "Unknown"))}
 - **Severity**: {vuln.get("severity", "Medium")}
-- **Description**: {vuln.get("description", "No description available")}
-- **Impact**: {vuln.get("impact", "Not assessed")}
+- **Description**: {vuln.get("details", {}).get("description", "No description available")}
+- **Status**: {vuln.get("status", "Unknown")}
 
 """
         

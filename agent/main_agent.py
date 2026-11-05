@@ -13,6 +13,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from ai_brain.llm import LLMEngine
 from ai_brain.planner import AIPlanner
+from database.database import DatabaseManager
 from modules.reconnaissance import ReconModule
 from modules.scanning import VulnerabilityScanner, AuthScanner
 from modules.exploitation import ExploitationModule

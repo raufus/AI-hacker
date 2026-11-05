@@ -10,10 +10,6 @@ def overview_page():
         from database.database import DatabaseManager
         db = DatabaseManager()
 
-        # Load actual stats from the database
-        with open(db.db_path, 'r', encoding='utf-8') as f:
-            pass # Just ensuring file check works, db logic is done by sqlite3
-
         import sqlite3
         with sqlite3.connect(db.db_path) as conn:
             cursor = conn.cursor()
